@@ -14,16 +14,20 @@ import {
 } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";
 
-export class ApiLambdaCrudDynamoDBStack extends Stack {
+export class AppStack extends Stack {
   constructor(app: App, id: string) {
-    super(app, id);
+    super(app, id, {
+      env: {
+        region: "ap-northeast-1",
+      },
+    });
 
-    const dynamoTable = new Table(this, "items", {
+    const dynamoTable = new Table(this, "word", {
       partitionKey: {
-        name: "itemId",
+        name: "id",
         type: AttributeType.STRING,
       },
-      tableName: "items",
+      tableName: `${id}-word`,
 
       /**
        *  The default removal policy is RETAIN, which means that cdk destroy will not attempt to delete
@@ -39,33 +43,33 @@ export class ApiLambdaCrudDynamoDBStack extends Stack {
           "aws-sdk", // Use the 'aws-sdk' available in the Lambda runtime
         ],
       },
-      depsLockFilePath: join(__dirname, "lambdas", "package-lock.json"),
+      depsLockFilePath: join(__dirname, "src/functions", "yarn.lock"),
       environment: {
-        PRIMARY_KEY: "itemId",
+        PRIMARY_KEY: "id",
         TABLE_NAME: dynamoTable.tableName,
       },
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
     };
 
     // Create a Lambda function for each of the CRUD operations
     const getOneLambda = new NodejsFunction(this, "getOneItemFunction", {
-      entry: join(__dirname, "lambdas", "get-one.ts"),
+      entry: join(__dirname, "src/functions", "get-one.ts"),
       ...nodeJsFunctionProps,
     });
     const getAllLambda = new NodejsFunction(this, "getAllItemsFunction", {
-      entry: join(__dirname, "lambdas", "get-all.ts"),
+      entry: join(__dirname, "src/functions", "get-all.ts"),
       ...nodeJsFunctionProps,
     });
     const createOneLambda = new NodejsFunction(this, "createItemFunction", {
-      entry: join(__dirname, "lambdas", "create.ts"),
+      entry: join(__dirname, "src/functions", "create.ts"),
       ...nodeJsFunctionProps,
     });
-    const updateOneLambda = new NodejsFunction(this, "updateItemFunction", {
-      entry: join(__dirname, "lambdas", "update-one.ts"),
-      ...nodeJsFunctionProps,
-    });
+    // const updateOneLambda = new NodejsFunction(this, "updateItemFunction", {
+    //   entry: join(__dirname, "src/functions", "update-one.ts"),
+    //   ...nodeJsFunctionProps,
+    // });
     const deleteOneLambda = new NodejsFunction(this, "deleteItemFunction", {
-      entry: join(__dirname, "lambdas", "delete-one.ts"),
+      entry: join(__dirname, "src/functions", "delete-one.ts"),
       ...nodeJsFunctionProps,
     });
 
@@ -73,14 +77,14 @@ export class ApiLambdaCrudDynamoDBStack extends Stack {
     dynamoTable.grantReadWriteData(getAllLambda);
     dynamoTable.grantReadWriteData(getOneLambda);
     dynamoTable.grantReadWriteData(createOneLambda);
-    dynamoTable.grantReadWriteData(updateOneLambda);
+    // dynamoTable.grantReadWriteData(updateOneLambda);
     dynamoTable.grantReadWriteData(deleteOneLambda);
 
     // Integrate the Lambda functions with the API Gateway resource
     const getAllIntegration = new LambdaIntegration(getAllLambda);
     const createOneIntegration = new LambdaIntegration(createOneLambda);
     const getOneIntegration = new LambdaIntegration(getOneLambda);
-    const updateOneIntegration = new LambdaIntegration(updateOneLambda);
+    // const updateOneIntegration = new LambdaIntegration(updateOneLambda);
     const deleteOneIntegration = new LambdaIntegration(deleteOneLambda);
 
     // Create an API Gateway resource for each of the CRUD operations
@@ -88,14 +92,14 @@ export class ApiLambdaCrudDynamoDBStack extends Stack {
       restApiName: "Items Service",
     });
 
-    const items = api.root.addResource("items");
+    const items = api.root.addResource("word");
     items.addMethod("GET", getAllIntegration);
     items.addMethod("POST", createOneIntegration);
     addCorsOptions(items);
 
     const singleItem = items.addResource("{id}");
     singleItem.addMethod("GET", getOneIntegration);
-    singleItem.addMethod("PATCH", updateOneIntegration);
+    // singleItem.addMethod("PATCH", updateOneIntegration);
     singleItem.addMethod("DELETE", deleteOneIntegration);
     addCorsOptions(singleItem);
   }
@@ -141,5 +145,5 @@ export function addCorsOptions(apiResource: IResource) {
 }
 
 const app = new App();
-new ApiLambdaCrudDynamoDBStack(app, "ApiLambdaCrudDynamoDBExample");
+new AppStack(app, "diciology-api");
 app.synth();
