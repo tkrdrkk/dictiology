@@ -25,6 +25,10 @@ yarn
 ### Cognito 認証を追加
 
 - https://docs.aws.amazon.com/cdk/api/v1/docs/aws-apigateway-readme.html#cognito-user-pools-authorizer
+- cli 経由で confirmed にする https://zenn.dev/longbridge/articles/56678cbb919d61
+- 認証手順
+  1. ID トークンを得る
+  2. API リクエストのヘッダーに`Authorization: Bearer ${idToken}`を含めて投げる
 
 ## 複数環境想定の設定
 
