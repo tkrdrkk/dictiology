@@ -1,6 +1,6 @@
 import {
   DeleteItemCommand,
-  DeleteItemInput,
+  DeleteItemCommandInput,
   DynamoDBClient,
 } from "@aws-sdk/client-dynamodb";
 
@@ -18,10 +18,10 @@ export const handler = async (event: any = {}): Promise<any> => {
     };
   }
 
-  const params: DeleteItemInput = {
+  const params: DeleteItemCommandInput = {
     TableName: TABLE_NAME,
     Key: {
-      [PRIMARY_KEY]: requestedItemId,
+      [PRIMARY_KEY]: { S: requestedItemId },
     },
   };
 
@@ -31,6 +31,8 @@ export const handler = async (event: any = {}): Promise<any> => {
     const response = await dbclient.send(command);
     return { statusCode: 200, body: JSON.stringify(response) };
   } catch (dbError) {
+    console.error("error >> ", JSON.stringify(dbError));
+
     return { statusCode: 500, body: JSON.stringify(dbError) };
   }
 };

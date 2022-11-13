@@ -21,7 +21,7 @@ export const handler = async (event: any = {}): Promise<any> => {
   }
   const item =
     typeof event.body == "object" ? event.body : JSON.parse(event.body);
-  item[PRIMARY_KEY] = uuidv4();
+  item[PRIMARY_KEY] = { S: uuidv4() };
   const params: PutItemCommandInput = {
     TableName: TABLE_NAME,
     Item: item,
@@ -29,13 +29,15 @@ export const handler = async (event: any = {}): Promise<any> => {
   const command = new PutItemCommand(params);
 
   try {
-    const response = dbclient.send(command);
+    console.log(JSON.stringify(command.input));
+    const response = await dbclient.send(command);
     return { statusCode: 201, body: JSON.stringify(response) };
-  } catch (error) {
-    const dbError = error as { code: string; message: string };
+  } catch (dbError) {
+    console.error("error >> ", JSON.stringify(dbError));
+    const dbErrorWithInfo = dbError as { code: string; message: string };
     const errorResponse =
-      dbError.code === "ValidationException" &&
-      dbError.message.includes("reserved keyword")
+      dbErrorWithInfo.code === "ValidationException" &&
+      dbErrorWithInfo.message.includes("reserved keyword")
         ? DYNAMODB_EXECUTION_ERROR
         : RESERVED_RESPONSE;
     return { statusCode: 500, body: errorResponse };

@@ -15,6 +15,7 @@ yarn
 - これ→https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/api-cors-lambda-crud-dynamodb/
 ### sdkがv2記法なのが辛い
 - v3に読み替える
+- putitemのinput記法が例のdynamodb jsonなのがつらすぎる
 
 ## 複数環境想定の設定
 ### コンテキストファイルの作成

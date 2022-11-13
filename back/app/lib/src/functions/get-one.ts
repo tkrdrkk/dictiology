@@ -21,12 +21,13 @@ export const handler = async (event: any = {}): Promise<any> => {
   const params: GetItemCommandInput = {
     TableName: TABLE_NAME,
     Key: {
-      [PRIMARY_KEY]: requestedItemId,
+      [PRIMARY_KEY]: { S: requestedItemId },
     },
   };
   const command = new GetItemCommand(params);
 
   try {
+    console.log(JSON.stringify(command.input));
     const response = await dbclient.send(command);
     if (response.Item) {
       return { statusCode: 200, body: JSON.stringify(response.Item) };
@@ -34,6 +35,7 @@ export const handler = async (event: any = {}): Promise<any> => {
       return { statusCode: 404 };
     }
   } catch (dbError) {
+    console.error("error >> ", JSON.stringify(dbError));
     return { statusCode: 500, body: JSON.stringify(dbError) };
   }
 };
