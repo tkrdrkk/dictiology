@@ -1,22 +1,33 @@
-## cdk initでyarnを使いたい
-- cdk initはデフォでnpm installを実行する
-- が、yarnの方が好き
-- package-lock.json削除+node_modules削除+yarn で多分行けるけどめんどくさい
-- helpから--generate-onlyオプションを発見
-- これで解決↓
+## cdk init で yarn を使いたい
+
+- cdk init はデフォで npm install を実行する
+- が、yarn の方が好き
+- package-lock.json 削除+node_modules 削除+yarn で多分行けるけどめんどくさい
+- help から--generate-only オプションを発見
+- これで解決 ↓
+
 ```
 cdk init -l typescript --generate-only
 yarn
 ```
 
-## 一旦graphqlをあきらめapi gateway + lambda + dynamodbにする
-- 公式のexamplesがあるが、ボイラープレート的に使えるわけじゃないっぽいのでコピペで頑張る
+## 一旦 graphql をあきらめ api gateway + lambda + dynamodb にする
+
+- 公式の examples があるが、ボイラープレート的に使えるわけじゃないっぽいのでコピペで頑張る
 - 理解度を上げられるという前向きな理解
-- これ→https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/api-cors-lambda-crud-dynamodb/
-### sdkがv2記法なのが辛い
-- v3に読み替える
-- putitemのinput記法が例のdynamodb jsonなのがつらすぎる
+- これ →https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/api-cors-lambda-crud-dynamodb/
+
+### sdk が v2 記法なのが辛い
+
+- v3 に読み替える
+- putitem の input 記法が例の dynamodb json なのがつらすぎる
+
+### Cognito 認証を追加
+
+- https://docs.aws.amazon.com/cdk/api/v1/docs/aws-apigateway-readme.html#cognito-user-pools-authorizer
 
 ## 複数環境想定の設定
+
 ### コンテキストファイルの作成
-- いつもお世話になっております→https://maku.blog/p/vx5ta85/
+
+- いつもお世話になっております →https://maku.blog/p/vx5ta85/

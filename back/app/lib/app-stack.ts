@@ -1,11 +1,14 @@
 import { App, RemovalPolicy, Stack } from "aws-cdk-lib";
 import {
+  AuthorizationType,
+  CognitoUserPoolsAuthorizer,
   IResource,
   LambdaIntegration,
   MockIntegration,
   PassthroughBehavior,
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
+import { UserPool } from "aws-cdk-lib/aws-cognito";
 import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import {
@@ -21,6 +24,11 @@ export class AppStack extends Stack {
         region: "ap-northeast-1",
       },
     });
+
+    /**
+     * Authentication & Authorization Provider: Cognito
+     */
+    const userPool = new UserPool(this, `${id}-UserPool`);
 
     const dynamoTable = new Table(this, "word", {
       partitionKey: {
@@ -92,15 +100,28 @@ export class AppStack extends Stack {
       restApiName: "Items Service",
     });
 
+    // Integrate the Api Methods with the UserPool Authentication
+    const auth = new CognitoUserPoolsAuthorizer(
+      this,
+      `${id}-word-api-authorizer`,
+      {
+        cognitoUserPools: [userPool],
+      }
+    );
+    const apiMethodOption = {
+      authorizer: auth,
+      authorizationType: AuthorizationType.COGNITO,
+    };
+
     const items = api.root.addResource("word");
-    items.addMethod("GET", getAllIntegration);
-    items.addMethod("POST", createOneIntegration);
+    items.addMethod("GET", getAllIntegration, apiMethodOption);
+    items.addMethod("POST", createOneIntegration, apiMethodOption);
     addCorsOptions(items);
 
     const singleItem = items.addResource("{id}");
-    singleItem.addMethod("GET", getOneIntegration);
-    // singleItem.addMethod("PATCH", updateOneIntegration);
-    singleItem.addMethod("DELETE", deleteOneIntegration);
+    singleItem.addMethod("GET", getOneIntegration, apiMethodOption);
+    // singleItem.addMethod("PATCH", updateOneIntegration, );
+    singleItem.addMethod("DELETE", deleteOneIntegration, apiMethodOption);
     addCorsOptions(singleItem);
   }
 }
